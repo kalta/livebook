@@ -18,6 +18,8 @@ defmodule Livebook.Application do
         [{DNSCluster, query: Application.get_env(:livebook, :dns_cluster_query) || :ignore}]
       end ++
         [
+          Livebook.Nk.Cluster,
+
           # Start the Telemetry supervisor
           LivebookWeb.Telemetry,
           # Start the PubSub system

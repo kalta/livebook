@@ -26,6 +26,8 @@ defmodule Livebook.Nk.Cluster do
     connect(connect)
   end
 
+  def connect(nil), do: :ok
+
   def connect(single) when is_binary(single),
     do: connect([single])
 
@@ -58,7 +60,7 @@ defmodule Livebook.Nk.Cluster do
 
   @impl true
   def handle_info(:malla_connect_nodes, state) do
-    Application.get_env(:malla_lb, :connect, []) |> connect()
+    connect()
     Process.send_after(self(), :malla_connect_nodes, @check_nodes_time)
     {:noreply, state}
   end
@@ -110,7 +112,7 @@ defmodule Livebook.Nk.Cluster do
         resolve_service(nodes, [])
 
       o ->
-        IO.puts("Error in resolve for #{service}: #{inspect o}")
+        IO.puts("Error in resolve for #{service}: #{inspect(o)}")
         []
     end
   end
@@ -124,52 +126,4 @@ defmodule Livebook.Nk.Cluster do
     # IO.puts("CONNECTING TO #{inspect node}: #{name} #{inspect ips}")
     resolve_service(rest, [{node, ips} | acc])
   end
-
-  # @kubernetes_master "kubernetes.default.svc"
-  # @service_account_path "/var/run/secrets/kubernetes.io/serviceaccount"
-
-  # def t1() do
-  #   service_account_path = @service_account_path
-  #   master = @kubernetes_master
-  #   token = get_token(service_account_path)
-  #   namespace = get_namespace(service_account_path)
-  #   selector = "app=myapp"
-  #   path = "api/v1/namespaces/#{namespace}/pods?labelSelector=#{selector}"
-  #   headers = [{'authorization', 'Bearer #{token}'}]
-  #   http_options = [ssl: [verify: :verify_none], timeout: 15000]
-
-  #   case :httpc.request(:get, {'https://#{master}/#{path}', headers}, http_options, []) do
-  #     {:ok, {{_version, 200, _status}, _headers, body}} ->
-  #       Jason.decode!(body)
-
-  #     {:ok, {{_version, 403, _status}, _headers, body}} ->
-  #       %{"message" => msg} = Jason.decode!(body)
-  #       {:error, "cannot query kubernetes (unauthorized): #{msg}"}
-
-  #     {:ok, {{_version, code, _status}, _headers, _body}} ->
-  #       {:error, code}
-
-  #     {:error, reason} ->
-  #       {:error, reason}
-  #   end
-  # end
-
-  # defp get_token(service_account_path) do
-  #   path = Path.join(service_account_path, "token")
-
-  #   case File.exists?(path) do
-  #     true -> path |> File.read!() |> String.trim()
-  #     false -> ""
-  #   end
-  # end
-
-  # defp get_namespace(service_account_path) do
-  #   path = Path.join(service_account_path, "namespace")
-
-  #   if File.exists?(path) do
-  #     path |> File.read!() |> String.trim()
-  #   else
-  #     ""
-  #   end
-  # end
 end

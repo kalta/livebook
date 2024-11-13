@@ -9,19 +9,19 @@ defmodule Livebook.Nk.Util do
   end
 
   def create_s3() do
-    id = System.get_env("AWS_ACCESS_KEY_ID")
-    secret = System.get_env("AWS_SECRET_ACCESS_KEY")
-    bucket = System.get_env("NK_S3_BUCKET")
-    hub = Livebook.Hubs.fetch_hub!(Livebook.Hubs.Personal.id())
+    url = System.get_env("NK_S3_BUCKET")
 
     fs = %Livebook.FileSystem.S3{
       id: "nk-s3",
-      bucket_url: bucket,
-      access_key_id: id,
-      secret_access_key: secret
-      # hub_id: hub
+      bucket_url: url,
+      external_id: nil,
+      region: Livebook.FileSystem.S3.region_from_url(url),
+      access_key_id: System.get_env("AWS_ACCESS_KEY_ID"),
+      secret_access_key: System.get_env("AWS_SECRET_ACCESS_KEY"),
+      hub_id: Livebook.Hubs.Personal.id()
     }
 
-    :ok = Provider.create_file_system(hub, fs)
+    hub = Livebook.Hubs.fetch_hub!(Livebook.Hubs.Personal.id())
+    :ok = Livebook.Hubs.Provider.create_file_system(hub, fs)
   end
 end
