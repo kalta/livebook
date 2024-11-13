@@ -54,6 +54,10 @@ ENV MIX_ENV=prod
 # Install mix dependencies
 COPY mix.exs mix.lock ./
 COPY config config
+
+# ADDED
+COPY nk_deps nk_deps
+
 RUN mix do deps.get, deps.compile
 
 # Compile and build the release
@@ -65,8 +69,6 @@ COPY lib lib
 # We need README.md during compilation (look for @external_resource "README.md")
 COPY README.md README.md
 
-# ADDED
-COPY nk_deps nk_deps
 
 RUN mix do compile, release livebook
 
