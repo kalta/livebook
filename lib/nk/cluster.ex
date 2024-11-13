@@ -1,4 +1,4 @@
-defmodule Livebook.Nk.Cluster do
+defmodule Nk.Cluster do
   @moduledoc """
     Tries to connect to other nodes in the network according to
     the config option 'connect' (see `connect/0`)
@@ -71,10 +71,10 @@ defmodule Livebook.Nk.Cluster do
     {:noreply, state}
   end
 
-  def handle_cast({:set_runtime, pid, runtime}, state) do
-    Livebook.Session.set_runtime(pid, runtime)
-    {:noreply, state}
-  end
+  # def handle_cast({:set_runtime, pid, runtime}, state) do
+  #   Livebook.Session.set_runtime(pid, runtime)
+  #   {:noreply, state}
+  # end
 
   defp do_connect([]), do: :ok
 

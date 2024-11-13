@@ -12,7 +12,7 @@ defmodule Livebook.Application do
     set_cookie()
 
     # create s3 filesystem if not yet there
-    # Livebook.Nk.Util.create_s3()
+    # Nk.Util.create_s3()
 
     children =
       if serverless?() do
@@ -78,6 +78,10 @@ defmodule Livebook.Application do
     case Supervisor.start_link(children, opts) do
       {:ok, _} = result ->
         display_startup_info()
+
+        # ADDED
+        Nk.Cluster.connect()
+
         result
 
       {:error, error} ->

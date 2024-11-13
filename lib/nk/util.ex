@@ -1,4 +1,4 @@
-defmodule Livebook.Nk.Util do
+defmodule Nk.Util do
   alias Livebook.Hubs.Provider
 
   def show_fs() do
