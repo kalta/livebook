@@ -7,6 +7,8 @@ that can be used in netkubes env
 
 * we keep the deps we need in nk_deps
 * we modify mix.exs to include our deps
+* modify Dockerfile to copy_nk_des
+* added lib/nk_lb to add our code into Livebook
 * .gitignore
 * this file and scripts
 * we are soft-linking config
@@ -43,5 +45,10 @@ LIVEBOOK_DEFAULT_RUNTIME=standalone   # normal
 LIVEBOOK_DEFAULT_RUNTIME=embedded     # uses same engine from LB itself
 LIVEBOOK_DEFAULT_RUNTIME=attached:rcp-infra-0@172.29.6.162:horasAtodasPIZZA
 
+
+
+
+Livebook.Hubs.fetch_hub!(Livebook.Hubs.Personal.id())
+Livebook.Hubs.get_file_systems()
 
 
