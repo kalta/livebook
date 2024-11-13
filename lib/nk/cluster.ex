@@ -61,10 +61,18 @@ defmodule Livebook.Nk.Cluster do
 
   @impl true
   def handle_info(:malla_connect_nodes, state) do
-    IO.puts("Connecting...")
     connect()
     Process.send_after(self(), :malla_connect_nodes, @check_nodes_time)
-    IO.puts("Connected: #{inspect Node.list()}")
+    {:noreply, state}
+  end
+
+  def handle_cast({:set_runtime, pid, runtime}, state) do
+    Livebook.Session.set_runtime(pid, runtime)
+    {:noreply, state}
+  end
+
+  def handle_cast({:set_runtime, pid, runtime}, state) do
+    Livebook.Session.set_runtime(pid, runtime)
     {:noreply, state}
   end
 

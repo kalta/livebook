@@ -11,6 +11,9 @@ defmodule Livebook.Application do
     start_distribution!()
     set_cookie()
 
+    # create s3 filesystem if not yet there
+    Livebook.Nk.Util.create_s3()
+
     children =
       if serverless?() do
         []
@@ -18,7 +21,7 @@ defmodule Livebook.Application do
         [{DNSCluster, query: Application.get_env(:livebook, :dns_cluster_query) || :ignore}]
       end ++
         [
-          Livebook.Nk.Cluster,
+          # Livebook.Nk.Cluster,
 
           # Start the Telemetry supervisor
           LivebookWeb.Telemetry,
