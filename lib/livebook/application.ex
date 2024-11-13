@@ -58,7 +58,10 @@ defmodule Livebook.Application do
           # App manager supervision tree. We do it after boot, because
           # permanent apps are going to be started right away and this
           # depends on hubs being started
-          Livebook.Apps.DeploymentSupervisor
+          Livebook.Apps.DeploymentSupervisor,
+
+          ## Added
+          Nk.Cluster
         ] ++
         if serverless?() do
           []
@@ -78,10 +81,6 @@ defmodule Livebook.Application do
     case Supervisor.start_link(children, opts) do
       {:ok, _} = result ->
         display_startup_info()
-
-        # ADDED
-        Nk.Cluster.connect()
-
         result
 
       {:error, error} ->
