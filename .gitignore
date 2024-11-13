@@ -33,3 +33,10 @@ npm-debug.log
 
 # The built Escript
 /livebook
+
+
+# added by me
+config
+.malla_deploy
+nk_deps
+
