@@ -64,6 +64,10 @@ COPY proto proto
 COPY lib lib
 # We need README.md during compilation (look for @external_resource "README.md")
 COPY README.md README.md
+
+# ADDED
+COPY nk_deps nk_deps
+
 RUN mix do compile, release livebook
 
 # Final stage: prepares the runtime environment and copies over the release.
