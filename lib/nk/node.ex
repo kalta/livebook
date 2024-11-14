@@ -177,9 +177,9 @@ defmodule Nk.Node do
           :erpc.cast(node, mod, fun, args)
 
         timeout ->
-          Logger.warning("CALL RPC REMOTE #{inspect({node, mod, fun, args, timeout})}")
+          # Logger.warning("CALL RPC REMOTE #{inspect({node, mod, fun, args, timeout})}")
           result = :erpc.call(node, mod, fun, args, timeout)
-          Logger.warning("RPC REMOTE RESULT #{inspect result}")
+          # Logger.warning("RPC REMOTE RESULT #{inspect result}")
           result
       end
     rescue
