@@ -1,7 +1,5 @@
 defmodule Nk.Node do
   @moduledoc """
-    A Node server is started by the MallaLb application
-
     Maintains a list of all services on the network, along
     with the status of each one
 
@@ -387,7 +385,7 @@ defmodule Nk.Node do
         def unquote(name)(unquote_splicing(args)) do
           # if we find a local srv_id, call service_cb_out/4
           # otherwise call directly
-          case MallaLb.get_srv_id() do
+          case Process.get(:malla_service_id) do
             nil ->
               Nk.Node.cb2(__MODULE__, unquote(name), unquote(args), [])
 
