@@ -39,47 +39,23 @@ defmodule Nk.Node do
     The rest will shuffle every 5 seconds
   """
 
-  # @spec get_instances(srv_id) :: [instance_status]
-  # def get_instances(srv_id),
-  #   do: MallaLb.Config.get(__MODULE__, {:service_running_data, srv_id}, [])
+  @spec get_instances(srv_id) :: [instance_status]
+  def get_instances(srv_id),
+    do: GenServer.call(__MODULE__, {:get_instances, srv_id}, [])
 
-  # @doc """
-  #   Gets all nodes implementing a specific service
+  @doc """
+    Gets all nodes implementing a specific service
 
-  #   If the local node is available, it will be first
-  #   The rest will shuffle every 5 seconds
-  # """
-  # @spec get_nodes(srv_id) :: [node()]
-  # def get_nodes(srv_id) do
-  #   for {node, _meta} <- get_instances(srv_id), do: node
-  # end
-
-  def get_nodes(_srv_id), do: []
+    If the local node is available, it will be first
+    The rest will shuffle every 5 seconds
+  """
+  @spec get_nodes(srv_id) :: [node()]
+  def get_nodes(srv_id) do
+    for {node, _meta} <- get_instances(srv_id), do: node
+  end
 
   def get_services(), do: GenServer.call(__MODULE__, :get_services)
 
-  def wait_for_services(list, opts \\ [])
-
-  def wait_for_services([], _opts), do: :ok
-
-  def wait_for_services([srv_id | rest], opts) do
-    case get_nodes(srv_id) do
-      [] ->
-        case Keyword.get(opts, :retries, 10) do
-          retries when is_integer(retries) and retries > 0 ->
-            Logger.warning("Waiting for service #{inspect(srv_id)} (#{retries} retries)")
-            Process.sleep(1000)
-            opts = Keyword.put(opts, :retries, retries - 1)
-            wait_for_services([srv_id | rest], opts)
-
-          _ ->
-            :timeout
-        end
-
-      [_ | _] ->
-        wait_for_services(rest, opts)
-    end
-  end
 
   # if timeout=0, means 'dont wait any answer'
   @type call_opt ::
@@ -243,29 +219,33 @@ defmodule Nk.Node do
   ## GenServer
   ## ===================================================================
 
-  def start_link(_), do: GenServer.start_link(__MODULE__, [], name: __MODULE__)
+  def start_link([]), do: GenServer.start_link(__MODULE__, [], name: __MODULE__)
 
   @type t :: %State{
           # current service_info
           services_info: %{pid() => {srv_id, meta: map()}},
           # all detected ids, ever
-          services_id: [srv_id]
+          instances: %{srv_id => [node]}
         }
 
-  defstruct [:services_info, :services_id]
+  defstruct [:services_info, :instances]
 
   @impl true
   def init([]) do
     :pg.start_link(Malla.Services2)
     :ok = :pg.join(Malla.Services2, __MODULE__, self())
-    state = %State{services_info: %{}, services_id: []}
+    state = %State{services_info: %{}, instances: %{}}
     Process.send_after(self(), :check_services, 1000)
     {:ok, state}
   end
 
   @impl true
-  def handle_call(:get_services, _from, %State{} = state) do
-    {:reply, Map.take(state, [:services_info, :services_id]), state}
+  def handle_call(:get_services, _from, %State{services_info: info} = state) do
+    {:reply, info, state}
+  end
+
+  def handle_call({:get_instances, srv_id}, _from, %State{instances: instances} = state) do
+    {:reply, Map.get(instances, srv_id, []), state}
   end
 
   @impl true
@@ -352,12 +332,12 @@ defmodule Nk.Node do
   # Finds running services and stores pid and vsn in config to
   # be retrieved by get_instances/1
   defp compute_services(state) do
-    %State{services_info: services_info, services_id: services_id} = state
+    %State{services_info: services_info, instances: instances} = state
 
     # lets suppose all previous detected services are now empty (no implementations on network)
-    base = for id <- services_id, do: {id, []}, into: %{}
+    base = for id <- Map.keys(instances), do: {id, []}, into: %{}
 
-    data =
+    instances =
       services_info
       |> Enum.reduce(base, fn {pid, {srv_id, meta}}, acc ->
         prev = Map.get(acc, srv_id, [])
@@ -373,14 +353,9 @@ defmodule Nk.Node do
 
         {id, list}
       end)
+      |> Map.new()
 
-    services_id =
-      for {srv_id, _list} <- data do
-        # MallaLb.Config.put(__MODULE__, {:service_running_data, srv_id}, list)
-        srv_id
-      end
-
-    %State{state | services_id: services_id}
+    %State{state | instances: instances}
   end
 
   defp rand([]), do: []

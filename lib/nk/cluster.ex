@@ -27,12 +27,11 @@ defmodule Nk.Cluster do
     find_nodes(find_nodes)
   end
 
-  def find_nodes(nil), do: :ok
+  def find_nodes(nil), do: []
+  def find_nodes([]), do: []
 
   def find_nodes(single) when is_binary(single),
     do: do_find_nodes([single], [])
-
-  def find_nodes([]), do: []
 
   def find_nodes(list) when is_list(list), do: do_find_nodes(list, [])
 
@@ -57,32 +56,28 @@ defmodule Nk.Cluster do
     do_find_nodes(rest, nodes)
   end
 
-  def connect() do
-    connect = System.get_env("NK_CONNECT")
-    connect(connect)
-  end
+  def connect(), do: find_nodes() |> do_connect()
 
-  def connect(nil), do: :ok
+  def connect(connect), do: find_nodes(connect) |> do_connect()
 
-  def connect(single) when is_binary(single),
-    do: connect([single])
+  defp do_connect(list) do
+    my_nodes = [node() | Node.list()]
 
-  def connect([]), do: :ok
+    for node <- find_nodes(list) do
+      node = String.to_atom(node)
 
-  def connect([node | rest]) when is_binary(node) do
-    case String.split(node, "@") do
-      [name, domain] ->
-        case resolve_service(domain) do
-          [] -> [{name, resolve_host(domain)}]
-          list -> list
+      if not Enum.member?(my_nodes, node) do
+        case Node.connect(node) do
+          true ->
+            IO.puts("CONNECTED to #{node}")
+
+          _ ->
+            :ok
         end
-
-      [domain] ->
-        resolve_service(domain)
+      end
     end
-    |> do_connect()
 
-    connect(rest)
+    :ok
   end
 
   def start_link([]),
@@ -90,7 +85,7 @@ defmodule Nk.Cluster do
 
   @impl true
   def init([]) do
-    IO.puts("Cluster: #{inspect(self())}")
+    # IO.puts("Cluster: #{inspect(self())}")
     Process.send_after(self(), :malla_connect_nodes, 5000)
     {:ok, nil}
   end
@@ -107,28 +102,28 @@ defmodule Nk.Cluster do
   #   {:noreply, state}
   # end
 
-  defp do_connect([]), do: :ok
+  # defp do_connect([]), do: :ok
 
-  defp do_connect([{name, ips} | rest]) do
-    nodes = [node() | Node.list()]
+  # defp do_connect([{name, ips} | rest]) do
+  #   nodes = [node() | Node.list()]
 
-    for ip <- ips do
-      node = String.to_atom("#{name}@#{ip}")
+  #   for ip <- ips do
+  #     node = String.to_atom("#{name}@#{ip}")
 
-      if not Enum.member?(nodes, node) do
-        case Node.connect(node) do
-          true ->
-            IO.puts("CONNECTED to #{node}")
+  #     if not Enum.member?(nodes, node) do
+  #       case Node.connect(node) do
+  #         true ->
+  #           IO.puts("CONNECTED to #{node}")
 
-          _ ->
-            # IO.puts("NOT CONNECTED to #{node}")
-            :ok
-        end
-      end
-    end
+  #         _ ->
+  #           # IO.puts("NOT CONNECTED to #{node}")
+  #           :ok
+  #       end
+  #     end
+  #   end
 
-    do_connect(rest)
-  end
+  #   do_connect(rest)
+  # end
 
   # see problem on resolve_service
   @dialyzer {:no_match, resolve_host: 1}
