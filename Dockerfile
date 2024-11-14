@@ -55,9 +55,6 @@ ENV MIX_ENV=prod
 COPY mix.exs mix.lock ./
 COPY config config
 
-# ADDED
-COPY nk_deps nk_deps
-
 RUN mix do deps.get, deps.compile
 
 # Compile and build the release

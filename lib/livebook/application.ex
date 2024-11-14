@@ -11,9 +11,6 @@ defmodule Livebook.Application do
     start_distribution!()
     set_cookie()
 
-    # create s3 filesystem if not yet there
-    # Nk.Util.create_s3()
-
     children =
       if serverless?() do
         []
@@ -60,8 +57,9 @@ defmodule Livebook.Application do
           # depends on hubs being started
           Livebook.Apps.DeploymentSupervisor,
 
-          ## Added
+          ## Added --------
           Nk.Cluster
+          ## Added --------
         ] ++
         if serverless?() do
           []
@@ -81,6 +79,11 @@ defmodule Livebook.Application do
     case Supervisor.start_link(children, opts) do
       {:ok, _} = result ->
         display_startup_info()
+
+        # Added --------
+        Nk.Util.create_s3()
+        # Added --------
+
         result
 
       {:error, error} ->

@@ -21,6 +21,42 @@ defmodule Nk.Cluster do
 
     If it is registering the names, you only need the service
   """
+
+  def find_nodes() do
+    find_nodes = System.get_env("NK_CONNECT")
+    find_nodes(find_nodes)
+  end
+
+  def find_nodes(nil), do: :ok
+
+  def find_nodes(single) when is_binary(single),
+    do: do_find_nodes([single], [])
+
+  def find_nodes([]), do: []
+
+  def find_nodes(list) when is_list(list), do: do_find_nodes(list, [])
+
+  defp do_find_nodes([], nodes), do: nodes
+
+  defp do_find_nodes([node | rest], nodes) when is_binary(node) do
+    nodes =
+      case String.split(node, "@") do
+        [name, domain] ->
+          case resolve_service(domain) do
+            [] -> [{name, resolve_host(domain)}]
+            list -> list
+          end
+
+        [domain] ->
+          resolve_service(domain)
+      end
+      |> Enum.reduce(nodes, fn {name, ips}, acc2 ->
+        acc2 ++ for(ip <- ips, do: "#{name}@#{ip}")
+      end)
+
+    do_find_nodes(rest, nodes)
+  end
+
   def connect() do
     connect = System.get_env("NK_CONNECT")
     connect(connect)
@@ -54,7 +90,7 @@ defmodule Nk.Cluster do
 
   @impl true
   def init([]) do
-    IO.puts("Cluster: #{inspect self()}")
+    IO.puts("Cluster: #{inspect(self())}")
     Process.send_after(self(), :malla_connect_nodes, 5000)
     {:ok, nil}
   end
@@ -63,11 +99,6 @@ defmodule Nk.Cluster do
   def handle_info(:malla_connect_nodes, state) do
     connect()
     Process.send_after(self(), :malla_connect_nodes, @check_nodes_time)
-    {:noreply, state}
-  end
-
-  def handle_cast({:set_runtime, pid, runtime}, state) do
-    Livebook.Session.set_runtime(pid, runtime)
     {:noreply, state}
   end
 

@@ -126,11 +126,7 @@ defmodule Livebook.MixProject do
       {:jose, "~> 1.11.5"},
       {:req, "~> 0.5.2"},
       # Docs
-      {:ex_doc, "~> 0.30", only: :dev, runtime: false},
-
-      # added by me
-      # {:norma, path: "nk_deps/norma"}
-      {:malla_lb, path: "nk_deps/malla_lb"}
+      {:ex_doc, "~> 0.30", only: :dev, runtime: false}
     ]
   end
 

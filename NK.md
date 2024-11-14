@@ -5,10 +5,7 @@ that can be used in netkubes env
 
 ### Modifications:
 
-* we keep the deps we need in nk_deps
-* we modify mix.exs to include our deps
-* modify Dockerfile to copy_nk_des
-* added lib/nk_lb to add our code into Livebook
+* added lib/nk to add our code into Livebook
 * .gitignore
 * this file and scripts
 * we are soft-linking config
