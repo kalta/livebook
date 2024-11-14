@@ -148,8 +148,8 @@ defmodule Nk.Cluster do
       {:ok, {:hostent, _fullsrv, _list, :srv, _num_nodes, nodes}} ->
         resolve_service(nodes, [])
 
-      o ->
-        IO.puts("Error in resolve for #{service}: #{inspect(o)}")
+      _ ->
+        # IO.puts("Error in resolve for #{service}: #{inspect(o)}")
         []
     end
   end
