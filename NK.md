@@ -6,6 +6,9 @@ that can be used in netkubes env
 ### Modifications:
 
 * added lib/nk to add our code into Livebook
+    * Nk.Cluster (will be started at Livebook.Application)
+    * Nk.Node (will be started at Livebook.Application)
+    * Nk.Util (called from Livebook.Application to create S3)
 * .gitignore
 * this file and scripts
 * we are soft-linking config
@@ -17,8 +20,8 @@ that can be used in netkubes env
 
 ### Build on Netkubes
 
-* nkd build helm -r nk_lb_main
-* nkd build helm -r nk_lb_base
+* nkd build helm -r nk_lb_main -d rcp_livebook_dev
+* nkd build helm -r nk_lb_base -d rcp_livebook_dev
 
 This will build docker, send to AWS ECR and update deployment values
 
@@ -41,11 +44,4 @@ Now we have two remotes, origin and upstream. Copy the tags from upstream:
 LIVEBOOK_DEFAULT_RUNTIME=standalone   # normal 
 LIVEBOOK_DEFAULT_RUNTIME=embedded     # uses same engine from LB itself
 LIVEBOOK_DEFAULT_RUNTIME=attached:rcp-infra-0@172.29.6.162:horasAtodasPIZZA
-
-
-
-
-Livebook.Hubs.fetch_hub!(Livebook.Hubs.Personal.id())
-Livebook.Hubs.get_file_systems()
-
 

@@ -81,9 +81,6 @@ defmodule Nk.Node do
   def cb(srv_id, fun, args, opts \\ []),
     do: call(srv_id, :cb, [fun, args, opts], [{:service_id, srv_id} | opts])
 
-  def cb2(srv_id, fun, args, opts \\ []),
-    do: call(srv_id, :malla_cb_in, [fun, args, opts], [{:service_id, srv_id} | opts])
-
   @doc """
     Launches an asynchronous request to all nodes implementing a service,
     calling a function 'cb' on each remote Service's module.
@@ -383,18 +380,7 @@ defmodule Nk.Node do
         args = Macro.generate_arguments(arity, __MODULE__)
 
         def unquote(name)(unquote_splicing(args)) do
-          # if we find a local srv_id, call service_cb_out/4
-          # otherwise call directly
-          case Process.get(:malla_service_id) do
-            nil ->
-              Nk.Node.cb2(__MODULE__, unquote(name), unquote(args), [])
-
-            caller_srv_id ->
-              caller_srv_id.service_cb_out(__MODULE__, unquote(name), unquote(args), [])
-          end
-
-          # IO.puts("#{unquote(name)} #{Kernel.inspect(unquote_splicing(args))}")
-          # unquote(module1).unquote(fun_name)(unquote_splicing(args))
+          Nk.Node.cb(__MODULE__, unquote(name), unquote(args), [])
         end
       end
     end
