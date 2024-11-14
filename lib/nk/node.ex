@@ -55,7 +55,6 @@ defmodule Nk.Node do
 
   def get_services(), do: GenServer.call(__MODULE__, :get_services)
 
-
   # if timeout=0, means 'dont wait any answer'
   @type call_opt ::
           {:timeout, timeout}
@@ -86,7 +85,6 @@ defmodule Nk.Node do
 
   def cb2(srv_id, fun, args, opts \\ []),
     do: call(srv_id, :malla_cb_in, [fun, args, opts], [{:srv_id, srv_id} | opts])
-
 
   @doc """
     Launches an asynchronous request to all nodes implementing a service,
@@ -295,7 +293,7 @@ defmodule Nk.Node do
   defp check_services() do
     fun = fn pid ->
       case GenServer.call(pid, :get_running_info, 5000) do
-        {:ok, {running, info}} -> update_service_info_local({running, info})
+        {:ok, {running, info}} -> GenServer.cast(__MODULE__, {:set_service_info, running, info})
         _ -> :ok
       end
     end
