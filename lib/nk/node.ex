@@ -41,7 +41,7 @@ defmodule Nk.Node do
 
   @spec get_instances(srv_id) :: [instance_status]
   def get_instances(srv_id),
-    do: GenServer.call(__MODULE__, {:get_instances, srv_id}, [])
+    do: GenServer.call(__MODULE__, {:get_instances, srv_id}, 5000)
 
   @doc """
     Gets all nodes implementing a specific service
@@ -50,9 +50,8 @@ defmodule Nk.Node do
     The rest will shuffle every 5 seconds
   """
   @spec get_nodes(srv_id) :: [node()]
-  def get_nodes(srv_id) do
-    for {node, _meta} <- get_instances(srv_id), do: node
-  end
+  def get_nodes(srv_id),
+    do: GenServer.call(__MODULE__, {:get_nodes, srv_id}, 5000)
 
   def get_services(), do: GenServer.call(__MODULE__, :get_services)
 
@@ -88,19 +87,6 @@ defmodule Nk.Node do
   def cb2(srv_id, fun, args, opts \\ []),
     do: call(srv_id, :malla_cb_in, [fun, args, opts], [{:srv_id, srv_id} | opts])
 
-  @doc """
-    Macro to perform a call to a function defined in local or remote service
-
-    Must be used as 'remote Service.fun(args), calls MallaLb.Mode.cb(Service, fun, args)
-  """
-
-  defmacro cb3({{:., _, [{:__aliases__, _, service_list}, fun]}, _, args}) do
-    srv_id = Module.concat(service_list)
-
-    quote do
-      Nk.Node.cb(unquote(srv_id), unquote(fun), unquote(args))
-    end
-  end
 
   @doc """
     Launches an asynchronous request to all nodes implementing a service,
@@ -248,6 +234,11 @@ defmodule Nk.Node do
     {:reply, Map.get(instances, srv_id, []), state}
   end
 
+  def handle_call({:get_nodes, srv_id}, _from, %State{instances: instances} = state) do
+    nodes = for {node, _} <- Map.get(instances, srv_id, []), do: node
+    {:reply, nodes, state}
+  end
+
   @impl true
   def handle_cast({:set_service_info, true, info}, state) do
     %State{services_info: services_info} = state
@@ -271,7 +262,6 @@ defmodule Nk.Node do
   @impl true
   def handle_info(:check_services, state) do
     check_services()
-    # set_telemetry(state.services_info)
     Process.send_after(self(), :check_services, @check_services_time)
     {:noreply, state}
   end
@@ -297,21 +287,6 @@ defmodule Nk.Node do
   ## ===================================================================
 
   @type service_info :: %{id: srv_id, pid: pid(), meta: map}
-
-  @doc "Updates local info for a service"
-  @spec update_service_info_local({running :: boolean, info :: service_info}) :: :ok
-  def update_service_info_local({running, info}),
-    do: GenServer.cast(__MODULE__, {:set_service_info, running, info})
-
-  @doc "Updates global info for a service"
-  @spec update_service_info_global({running :: boolean, info :: service_info}) :: :ok
-
-  def update_service_info_global({running, info}) do
-    for pid <- :pg.get_members(MallaLb.Services2, Nk.Node),
-        do: GenServer.cast(pid, {:set_service_info, running, info})
-
-    :ok
-  end
 
   # For each service instance detected on the network,
   # launches a process to ask for status and cast back
@@ -363,7 +338,7 @@ defmodule Nk.Node do
   defp rand(list), do: Enum.shuffle(list)
 
   _ = """
-   For each detected service, we create a module called 'MallaLb.<SrvId>'
+   For each detected service, we create a module called '<SrvId>'
    On it, a function is added for each callback defined in remote service.
 
    When calling this functions, if no caller srv_id is detected,

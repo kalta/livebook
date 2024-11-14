@@ -58,7 +58,8 @@ defmodule Livebook.Application do
           Livebook.Apps.DeploymentSupervisor,
 
           ## Added --------
-          Nk.Cluster
+          Nk.Cluster,
+          Nk.Node
           ## Added --------
         ] ++
         if serverless?() do
