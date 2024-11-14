@@ -79,10 +79,10 @@ defmodule Nk.Node do
           {:error, :service_not_available | {:malla_rpc_error, {term(), String.t()}}} | term
 
   def cb(srv_id, fun, args, opts \\ []),
-    do: call(srv_id, :cb, [fun, args, opts], [{:srv_id, srv_id} | opts])
+    do: call(srv_id, :cb, [fun, args, opts], [{:service_id, srv_id} | opts])
 
   def cb2(srv_id, fun, args, opts \\ []),
-    do: call(srv_id, :malla_cb_in, [fun, args, opts], [{:srv_id, srv_id} | opts])
+    do: call(srv_id, :malla_cb_in, [fun, args, opts], [{:service_id, srv_id} | opts])
 
   @doc """
     Launches an asynchronous request to all nodes implementing a service,
