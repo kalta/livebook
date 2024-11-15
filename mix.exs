@@ -126,7 +126,11 @@ defmodule Livebook.MixProject do
       {:jose, "~> 1.11.5"},
       {:req, "~> 0.5.2"},
       # Docs
-      {:ex_doc, "~> 0.30", only: :dev, runtime: false}
+      {:ex_doc, "~> 0.30", only: :dev, runtime: false},
+
+      # ADDED
+      {:kino, "~> 0.14.2"},
+      {:kino_vega_lite, "~> 0.1.13"}
     ]
   end
 
