@@ -35,13 +35,12 @@ This will build docker, send to AWS ECR and update deployment values
 * git remote add upstream https://github.com/livebook-dev/livebook.git
 
 Now we have two remotes, origin and upstream. Copy the tags from upstream:
-* git fetch upstream --tags    
-* checkout of upstream v0.14, created branch v0.14-nk, pushed to upstream 
+* git fetch upstream --tags
+* checkout of upstream v0.14, created branch v0.14-nk, pushed to upstream
 
 
 # Runtimes
 
-LIVEBOOK_DEFAULT_RUNTIME=standalone   # normal 
+LIVEBOOK_DEFAULT_RUNTIME=standalone   # normal
 LIVEBOOK_DEFAULT_RUNTIME=embedded     # uses same engine from LB itself
-LIVEBOOK_DEFAULT_RUNTIME=attached:rcp-infra-0@172.29.6.162:horasAtodasPIZZA
-
+LIVEBOOK_DEFAULT_RUNTIME=attached:rcp-infra-0@172.29.6.162:<cookie>
